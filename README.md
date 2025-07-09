@@ -54,6 +54,7 @@ Rule Parsing	OpenAI GPT (Bonus)	Converts UI-built rules into filter queries
   ├─ HomePage.jsx
   |-EditProfile.jsx
   ├─ CreateSegment.jsx
+  |- EditProfle.jsx
   ├─ SegmentPreview.jsx
   ├─ CampaignForm.jsx
   ├─ CampaignHistory.jsx
