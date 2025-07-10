@@ -1,68 +1,67 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
-  Route,
   Routes,
+  Route,
   Navigate,
 } from "react-router-dom";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import LoginPage from "./Login";
 import HomePage from "./HomePage";
-import CreateSegment from "./CreateSwgment";
+import CreateSegment from "./CreateSegment"; // ✅ fixed typo
 import SegmentPreview from "./SegmentPreview";
 import CampaignForm from "./CampaignForm";
 import CampaignHistory from "./CampaignHistory";
 import CampaignDetails from "./CampaignDetails";
 import DashboardOverview from "./DashboardOverview";
+import EditProfile from "./EditProfile";
 
-const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    !!localStorage.getItem("token")
-  );
+import { AuthProvider, useAuth } from "./AuthContext";
 
-  // Listen for login token changes (optional: more robust logic could use context)
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setIsAuthenticated(!!localStorage.getItem("token"));
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
+// Protected route logic
+const AppRoutes = () => {
+  const { isAuthenticated } = useAuth();
 
   return (
-    <GoogleOAuthProvider clientId="1044836791270-3nj1sgcd04jq8f7dtoqle38sveq5anf1.apps.googleusercontent.com">
+    <Routes>
+      {/* Public */}
+      <Route
+        path="/login"
+        element={
+          isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+        }
+      />
+
+      {/* Protected */}
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? <HomePage /> : <Navigate to="/login" replace />
+        }
+      >
+        <Route index element={<DashboardOverview />} />
+        <Route path="create-segment" element={<CreateSegment />} />
+        <Route path="segment-preview" element={<SegmentPreview />} />
+        <Route path="campaign-form" element={<CampaignForm />} />
+        <Route path="campaign-history" element={<CampaignHistory />} />
+        <Route path="campaign/:id" element={<CampaignDetails />} />
+        <Route path="edit-profile" element={<EditProfile />} />
+      </Route>
+
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+};
+
+// Main App
+const App = () => {
+  return (
+    <AuthProvider>
       <Router>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
-            }
-          />
-
-          <Route
-            path="/"
-            element={
-              isAuthenticated ? <HomePage /> : <Navigate to="/login" replace />
-            }
-          >
-            <Route index element={<DashboardOverview />} />
-            <Route path="create-segment" element={<CreateSegment />} />
-            <Route path="segment-preview" element={<SegmentPreview />} />
-            <Route path="campaign-form" element={<CampaignForm />} />
-            <Route path="campaign-history" element={<CampaignHistory />} />
-            <Route path="campaign/:id" element={<CampaignDetails />} />
-          </Route>
-
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
+        <AppRoutes />
       </Router>
-    </GoogleOAuthProvider>
+    </AuthProvider>
   );
 };
 
